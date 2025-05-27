@@ -1,0 +1,36 @@
+{
+  "name": "Vibe Coding Hamburg",
+  "short_name": "VibeCoding",
+  "description": "AI-Powered Developer Community in Hamburg",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#00f5ff",
+  "background_color": "#0a0a0f",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "start_url": "/",
+  "scope": "/",
+  "categories": ["developer", "community", "networking", "ai"],
+  "lang": "en",
+  "dir": "ltr"
+} 
