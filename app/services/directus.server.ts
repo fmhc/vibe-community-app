@@ -1,5 +1,6 @@
-import { createDirectus, rest, authentication, readItems, createItem, updateItem, deleteItem, createUser, readUsers, updateUser } from '@directus/sdk';
+import { createDirectus, rest, authentication, readItems, createItem, updateItem, deleteItem, createUser, readUsers, updateUser, readUser } from '@directus/sdk';
 import { randomBytes } from 'crypto';
+import { createCookieSessionStorage } from '@remix-run/node';
 
 // Define the schema for Directus users
 interface DirectusUser {
@@ -50,6 +51,19 @@ interface DirectusSchema {
   community_members: CommunityMember[];
   directus_users: DirectusUser[];
 }
+
+// Session storage for user authentication
+const sessionStorage = createCookieSessionStorage({
+  cookie: {
+    name: "__session",
+    httpOnly: true,
+    maxAge: 60 * 60 * 24 * 30, // 30 days
+    path: "/",
+    sameSite: "lax",
+    secrets: [process.env.SESSION_SECRET || "default-secret"],
+    secure: process.env.NODE_ENV === "production",
+  },
+});
 
 class DirectusService {
   private client;
