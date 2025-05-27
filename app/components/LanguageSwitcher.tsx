@@ -6,7 +6,7 @@ export default function LanguageSwitcher() {
   const currentLanguage = i18n.language;
 
   return (
-    <div className="relative">
+    <div className="relative" data-testid="language-switcher">
       <Form method="post" action="/change-language" className="inline-block">
         <select
           name="language"

@@ -272,7 +272,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         />
         
         {/* Preload critical resources */}
-        <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://rsms.me/" />
+        <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
         
         {/* DNS Prefetch for external resources */}
         <link rel="dns-prefetch" href="//fonts.googleapis.com" />

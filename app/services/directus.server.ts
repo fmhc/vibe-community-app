@@ -89,9 +89,9 @@ class DirectusService {
     }
     
     try {
-      this.client = createDirectus<DirectusSchema>(directusUrl)
-        .with(rest())
-        .with(authentication());
+    this.client = createDirectus<DirectusSchema>(directusUrl)
+      .with(rest())
+      .with(authentication());
       
       logger.info('DirectusService initialized successfully', {
         service: 'directus',
@@ -277,13 +277,13 @@ class DirectusService {
       
       const directusUser = await withErrorLogging(
         () => this.client.request(
-          createUser({
-            email: userData.email,
+        createUser({
+          email: userData.email,
             first_name: firstName,
             last_name: lastNameParts.join(' ') || '',
-            status: 'invited',
+          status: 'invited',
             role: process.env.DIRECTUS_COMMUNITY_ROLE_ID || null,
-          })
+        })
         ),
         context,
         'Failed to create Directus user'
@@ -294,30 +294,30 @@ class DirectusService {
       // Create community member record linked to Directus user
       const communityMember = await withErrorLogging(
         () => this.client.request(
-          createItem('community_members', {
-            directus_user_id: directusUser.id,
-            email: userData.email,
-            name: userData.name,
-            experience_level: userData.experience_level,
-            project_interest: userData.project_interest,
-            project_details: userData.project_details,
-            github_username: userData.github_username,
-            linkedin_url: userData.linkedin_url,
-            discord_username: userData.discord_username,
-            email_verified: false,
-            email_verification_token: verificationToken,
-            email_verification_sent_at: new Date().toISOString(),
-            email_preferences: {
-              welcome_emails: true,
-              event_invitations: true,
-              newsletter: true,
-              project_notifications: true,
-            },
-            unsubscribe_token: unsubscribeToken,
-            status: 'pending',
-            mattermost_invited: false,
-            discord_invited: false,
-          })
+        createItem('community_members', {
+          directus_user_id: directusUser.id,
+          email: userData.email,
+          name: userData.name,
+          experience_level: userData.experience_level,
+          project_interest: userData.project_interest,
+          project_details: userData.project_details,
+          github_username: userData.github_username,
+          linkedin_url: userData.linkedin_url,
+          discord_username: userData.discord_username,
+          email_verified: false,
+          email_verification_token: verificationToken,
+          email_verification_sent_at: new Date().toISOString(),
+          email_preferences: {
+            welcome_emails: true,
+            event_invitations: true,
+            newsletter: true,
+            project_notifications: true,
+          },
+          unsubscribe_token: unsubscribeToken,
+          status: 'pending',
+          mattermost_invited: false,
+          discord_invited: false,
+        })
         ),
         context,
         'Failed to create community member record'
@@ -473,12 +473,12 @@ class DirectusService {
   async updateCommunityMember(id: string, updates: Partial<CommunityMember>) {
     try {
       const result = await optimizedQuery('updateCommunityMember', async () => {
-        await this.authenticate();
-        
-        const updatedMember = await this.client.request(
-          updateItem('community_members', id, updates)
-        );
-        
+      await this.authenticate();
+      
+      const updatedMember = await this.client.request(
+        updateItem('community_members', id, updates)
+      );
+      
         // Invalidate caches for this user
         if (updatedMember.email) {
           invalidateEmailCache(updatedMember.email);
@@ -522,16 +522,16 @@ class DirectusService {
         cacheKey,
         async () => {
           return await optimizedQuery('checkEmailExists', async () => {
-            await this.authenticate();
-            
-            const existingMembers = await this.client.request(
-              readItems('community_members', {
-                filter: { email: { _eq: email } },
-                limit: 1,
-              })
-            );
-            
-            return existingMembers.length > 0;
+      await this.authenticate();
+      
+      const existingMembers = await this.client.request(
+        readItems('community_members', {
+          filter: { email: { _eq: email } },
+          limit: 1,
+        })
+      );
+      
+      return existingMembers.length > 0;
           });
         },
         5 * 60 * 1000 // 5 minute cache
@@ -621,20 +621,20 @@ class DirectusService {
         cacheKey,
         async () => {
           return await optimizedQuery('getMemberByEmail', async () => {
-            await this.authenticate();
-            
-            const members = await this.client.request(
-              readItems('community_members', {
-                filter: { email: { _eq: email } },
-                limit: 1,
-              })
-            );
-            
-            if (members.length === 0) {
-              return { success: false, error: 'Member not found' };
-            }
-            
-            return { success: true, data: members[0] };
+      await this.authenticate();
+      
+      const members = await this.client.request(
+        readItems('community_members', {
+          filter: { email: { _eq: email } },
+          limit: 1,
+        })
+      );
+      
+      if (members.length === 0) {
+        return { success: false, error: 'Member not found' };
+      }
+      
+      return { success: true, data: members[0] };
           });
         },
         10 * 60 * 1000 // 10 minute cache

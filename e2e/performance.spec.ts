@@ -67,7 +67,7 @@ test.describe('Performance & Accessibility', () => {
       
       // Get LCP using Performance API
       const lcp = await page.evaluate(() => {
-        return new Promise((resolve) => {
+        return new Promise<number>((resolve) => {
           const observer = new PerformanceObserver((list) => {
             const entries = list.getEntries();
             const lastEntry = entries[entries.length - 1];
@@ -98,7 +98,7 @@ test.describe('Performance & Accessibility', () => {
       
       // Get CLS score
       const cls = await page.evaluate(() => {
-        return new Promise((resolve) => {
+        return new Promise<number>((resolve) => {
           let clsValue = 0;
           const observer = new PerformanceObserver((list) => {
             for (const entry of list.getEntries()) {
