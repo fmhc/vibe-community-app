@@ -14,10 +14,13 @@
     "test:email": "tsx scripts/test-email.ts",
     "test:email-unit": "vitest run app/services/__tests__/email.server.test.ts",
     "test:email-integration": "vitest run app/services/__tests__/email.integration.test.ts",
+    "test:directus": "node scripts/test-directus-connection.js",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:headed": "playwright test --headed",
+    "test:deployment": "./scripts/test-deployment.sh",
+    "test:deployment:quick": "npx playwright test --config=playwright.deployment.config.ts e2e/deployment/deployment-health.spec.ts",
     "test:all": "npm run test && npm run test:e2e",
     "test:ci": "npm run test && npm run test:e2e --project=chromium",
     "install-browsers": "npx playwright install"

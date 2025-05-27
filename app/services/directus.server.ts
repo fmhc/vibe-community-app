@@ -1,4 +1,4 @@
-import { createDirectus, rest, authentication, readItems, createItem, updateItem, deleteItem, createUser, readUsers, updateUser, readUser } from '@directus/sdk';
+import { createDirectus, rest, authentication, readItems, createItem, updateItem, deleteItem, createUser, readUsers, updateUser, readUser, staticToken } from '@directus/sdk';
 import { randomBytes } from 'crypto';
 import { createCookieSessionStorage } from '@remix-run/node';
 import { logger, withErrorLogging, type LogContext } from '~/lib/logger.server';
@@ -89,14 +89,19 @@ class DirectusService {
     }
     
     try {
-    this.client = createDirectus<DirectusSchema>(directusUrl)
-      .with(rest())
-      .with(authentication());
+      // Use static token authentication instead of login
+      this.client = createDirectus<DirectusSchema>(directusUrl)
+        .with(rest())
+        .with(staticToken(directusKey));
       
-      logger.info('DirectusService initialized successfully', {
+      // Mark as authenticated since we're using a static token
+      this.isAuthenticated = true;
+      
+      logger.info('DirectusService initialized successfully with static token', {
         service: 'directus',
         method: 'constructor',
-        directusUrl: directusUrl.replace(/\/\/.*@/, '//***@') // Hide credentials in logs
+        directusUrl: directusUrl.replace(/\/\/.*@/, '//***@'), // Hide credentials in logs
+        authMethod: 'staticToken'
       });
     } catch (error) {
       logger.error('Failed to create Directus client', {
@@ -129,27 +134,47 @@ class DirectusService {
     
     try {
       const directusKey = process.env.DIRECTUS_KEY;
-      const directusSecret = process.env.DIRECTUS_SECRET;
       
-      if (!directusKey || !directusSecret) {
-        const error = new Error('DIRECTUS_KEY and DIRECTUS_SECRET must be set');
-        logger.error('Authentication failed - missing credentials', context, error);
+      if (!directusKey) {
+        const error = new Error('DIRECTUS_KEY must be set');
+        logger.error('Authentication failed - missing static token', context, error);
         return false;
       }
       
+      // For static tokens, we test connectivity by making a simple request
       await withErrorLogging(
-        () => this.client.login(directusKey, directusSecret),
+        () => this.client.request(readUser('me')),
         context,
-        'Directus authentication failed'
+        'Directus token validation failed'
       );
       
       this.isAuthenticated = true;
-      logger.info('Directus authentication successful', context);
+      logger.info('Directus static token validation successful', context);
       return true;
     } catch (error) {
       this.isAuthenticated = false;
-      logger.serviceError('directus', 'authenticate', 'Authentication failed', 
-        error instanceof Error ? error : new Error(String(error)), context);
+      
+      // Provide more detailed error logging
+      let errorMessage = 'Unknown authentication error';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        // Handle Directus error objects better
+        if ('errors' in error && Array.isArray(error.errors) && error.errors.length > 0) {
+          const firstError = error.errors[0];
+          if (firstError && typeof firstError === 'object' && 'message' in firstError) {
+            errorMessage = firstError.message as string;
+          }
+        }
+        if (errorMessage === 'Unknown authentication error') {
+          errorMessage = JSON.stringify(error);
+        }
+      } else {
+        errorMessage = String(error);
+      }
+      
+      logger.serviceError('directus', 'authenticate', `Authentication failed: ${errorMessage}`, 
+        error instanceof Error ? error : new Error(errorMessage), context);
       return false;
     }
   }
