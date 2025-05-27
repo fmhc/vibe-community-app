@@ -1,8 +1,46 @@
-import { describe, it, expect, beforeAll } from 'vitest';
-import { emailService } from '../email.server';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
+import { emailService } from '../../app/services/email.server';
 
-// These tests require actual email configuration
-// They will be skipped if environment variables are not set
+// Mock i18next for integration tests
+vi.mock('~/i18n.server', () => ({
+  default: {
+    getFixedT: vi.fn(() => (key: string, options?: any) => {
+      // Mock translations for English
+      const translations: Record<string, string> = {
+        'email.verification.subject': 'Please verify your email address - Vibe Coding Hamburg',
+        'email.verification.title': 'Welcome to Vibe Coding Hamburg!',
+        'email.verification.subtitle': 'Please verify your email address to complete your registration',
+        'email.verification.greeting': `Hi ${options?.name || 'User'}! 👋`,
+        'email.verification.message': 'Thank you for joining our community of developers exploring AI and software development in Hamburg!',
+        'email.verification.instruction': 'To complete your registration and start receiving community updates, please verify your email address by clicking the button below:',
+        'email.verification.button': 'Verify Email Address',
+        'email.verification.linkText': 'Or copy and paste this link into your browser:',
+        'email.verification.expiry': 'This verification link will expire in 24 hours.',
+        'email.verification.ignore': 'If you didn\'t create an account with Vibe Coding Hamburg, you can safely ignore this email.',
+        'email.welcome.subject': 'Welcome to Vibe Coding Hamburg! 🚀',
+        'email.welcome.title': 'Welcome to Vibe Coding Hamburg!',
+        'email.welcome.subtitle': 'Where AI meets creativity in Hamburg\'s tech scene',
+        'email.welcome.greeting': `Hi ${options?.name || 'User'}! 👋`,
+        'email.welcome.message': 'We\'re excited to have you join our community of developers exploring the intersection of artificial intelligence and software development.',
+        'email.welcome.projectInterest': `We noticed you're interested in ${options?.projectInterest} projects - that's awesome! Our community is full of like-minded developers who love to collaborate and share knowledge.`,
+        'email.welcome.fallbackMessage': 'Our community is full of like-minded developers who love to collaborate and share knowledge.',
+        'email.welcome.nextSteps': 'What\'s Next?',
+        'email.welcome.steps.events': 'Join our upcoming AI Builder Cafe events',
+        'email.welcome.steps.connect': 'Connect with fellow developers on our Discord/Mattermost',
+        'email.welcome.steps.projects': 'Share your project ideas and get feedback',
+        'email.welcome.steps.learn': 'Learn about the latest AI tools and techniques',
+        'email.welcome.keepInTouch': 'Keep an eye on your inbox for event invitations and community updates!',
+        'email.welcome.button': 'Visit Our Website',
+        'email.welcome.signature': 'Happy coding!<br>The Vibe Coding Hamburg Team',
+        'email.welcome.unsubscribe': 'You\'re receiving this email because you verified your account with Vibe Coding Hamburg.',
+        'email.welcome.unsubscribeLink': 'Unsubscribe from all emails',
+        'email.welcome.preferencesLink': 'Manage email preferences',
+      };
+      return translations[key] || key;
+    }),
+  },
+}));
+
 const hasEmailConfig = () => {
   return !!(
     process.env.TEST_MAIL_HOST &&
@@ -25,12 +63,21 @@ describe('Email Integration Tests', () => {
       
       expect(result.success).toBe(true);
       expect(result.error).toBeUndefined();
-    }, 10000); // 10 second timeout for network operations
+      
+      console.log('✅ Email server connection successful');
+    }, 10000); // 10 second timeout
 
     it.skipIf(!hasEmailConfig())('should handle invalid credentials gracefully', async () => {
       // This test would require temporarily changing credentials
-      // For now, we'll just ensure the connection test method exists
-      expect(typeof emailService.testConnection).toBe('function');
+      // For now, we'll just ensure the connection test method exists and works
+      const result = await emailService.testConnection();
+      
+      // Should either succeed or fail gracefully
+      expect(typeof result.success).toBe('boolean');
+      if (!result.success) {
+        expect(result.error).toBeDefined();
+        expect(typeof result.error).toBe('string');
+      }
     });
   });
 
@@ -116,10 +163,10 @@ describe('Email Integration Tests', () => {
       expect(capturedEmailData).toBeDefined();
       expect(capturedEmailData.to).toBe('john@example.com');
       expect(capturedEmailData.subject).toBe('Welcome to Vibe Coding Hamburg! 🚀');
-      expect(capturedEmailData.html).toContain('Hi John Doe!');
-      expect(capturedEmailData.html).toContain('ai</span> projects');
-      expect(capturedEmailData.text).toContain('Hi John Doe!');
-      expect(capturedEmailData.text).toContain('ai projects');
+      expect(capturedEmailData.html).toContain('Hi John Doe! 👋');
+      expect(capturedEmailData.html).toContain('interested in ai projects');
+      expect(capturedEmailData.text).toContain('Hi John Doe! 👋');
+      expect(capturedEmailData.text).toContain('interested in ai projects');
     });
 
     it('should handle different project interests in welcome email', async () => {
@@ -146,8 +193,8 @@ describe('Email Integration Tests', () => {
         // @ts-ignore
         emailService.sendEmail = originalSendEmail;
 
-        expect(capturedEmailData.html).toContain(`${interest}</span> projects`);
-        expect(capturedEmailData.text).toContain(`${interest} projects`);
+        expect(capturedEmailData.html).toContain(`interested in ${interest} projects`);
+        expect(capturedEmailData.text).toContain(`interested in ${interest} projects`);
       }
     });
   });

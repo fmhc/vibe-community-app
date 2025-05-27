@@ -1,11 +1,15 @@
 #!/usr/bin/env tsx
 
 import { config } from 'dotenv';
-import { emailService } from '../app/services/email.server';
-import { runEmailTest } from '../app/services/__tests__/email.integration.test';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
-// Load environment variables
-config();
+// Get current directory in ES module
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Load environment variables from parent directory
+config({ path: path.join(__dirname, '../../.env') });
 
 async function main() {
   console.log('🧪 Vibe Coding Hamburg - Email Service Test');
@@ -33,6 +37,9 @@ async function main() {
   console.log(`User: ${process.env.TEST_MAIL_USER}`);
   console.log(`Port: ${process.env.TEST_MAIL_PORT || '587'}`);
   console.log('');
+
+  // Dynamically import email service after env vars are loaded
+  const { emailService } = await import('../app/services/email.server');
 
   try {
     // Test connection
@@ -97,16 +104,54 @@ async function main() {
     console.log(`📬 Message ID: ${welcomeEmailResult.messageId}`);
     console.log('');
 
-    // Run full integration test
-    console.log('🔄 Running full integration test suite...');
-    const fullTestResult = await runEmailTest();
+    // Run additional validation tests
+    console.log('🔄 Running additional validation tests...');
+    
+    // Test different email formats
+    const validationTests = [
+      {
+        name: 'HTML content validation',
+        test: async () => {
+          const result = await emailService.sendEmail({
+            to: process.env.TEST_MAIL_USER!,
+            subject: 'HTML Test',
+            html: '<h1>HTML Test</h1><p>This tests HTML rendering.</p>',
+            text: 'HTML Test - This tests HTML rendering.',
+          });
+          return result.success;
+        }
+      },
+      {
+        name: 'Connection stability test',
+        test: async () => {
+          const result = await emailService.testConnection();
+          return result.success;
+        }
+      }
+    ];
 
-    if (!fullTestResult) {
-      console.log('❌ Some integration tests failed');
+    let allTestsPassed = true;
+    for (const test of validationTests) {
+      try {
+        const result = await test.test();
+        if (result) {
+          console.log(`  ✅ ${test.name}`);
+        } else {
+          console.log(`  ❌ ${test.name}`);
+          allTestsPassed = false;
+        }
+      } catch (error) {
+        console.log(`  ❌ ${test.name}: ${error}`);
+        allTestsPassed = false;
+      }
+    }
+
+    if (!allTestsPassed) {
+      console.log('❌ Some validation tests failed');
       process.exit(1);
     }
 
-    console.log('✅ All integration tests passed!');
+    console.log('✅ All validation tests passed!');
     console.log('');
     console.log('🎉 Email service is fully functional!');
     console.log('');

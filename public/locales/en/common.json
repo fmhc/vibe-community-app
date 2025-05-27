@@ -1,0 +1,159 @@
+{
+  "site": {
+    "title": "Vibe Coding Hamburg - Join Our AI Community",
+    "description": "Join Hamburg's most vibrant AI-powered coding community. Connect with fellow developers, work on exciting projects, and explore the future of coding with AI tools."
+  },
+  "header": {
+    "title": "Vibe Coding Hamburg",
+    "subtitle": "Where AI meets creativity in Hamburg's tech scene",
+    "description": "Join our community of developers exploring the intersection of artificial intelligence and software development. Build projects, share knowledge, and shape the future of coding."
+  },
+  "form": {
+    "title": "Join Vibe Coding Hamburg",
+    "subtitle": "Be part of Hamburg's most vibrant AI-powered coding community",
+    "email": {
+      "label": "Email Address",
+      "placeholder": "your@email.com",
+      "help": "We'll send you a verification email to get started",
+      "required": "Email address is required.",
+      "invalid": "Please enter a valid email address.",
+      "exists": "This email is already registered. Please use a different email or contact us if you need help."
+    },
+    "name": {
+      "label": "Name (optional)",
+      "placeholder": "How should we call you?",
+      "help": "You can always add this later"
+    },
+    "experience": {
+      "label": "How comfortable are you with coding? (optional)",
+      "levels": {
+        "beginner": "Just getting started 🌱",
+        "learning": "Learning the basics 📚",
+        "building": "Building confidence 💪",
+        "comfortable": "Pretty comfortable 🚀",
+        "experienced": "Quite experienced 🎯"
+      }
+    },
+    "project": {
+      "label": "What type of project interests you most? (optional)",
+      "options": {
+        "web": "Web App",
+        "ai": "AI Tool",
+        "mobile": "Mobile App",
+        "other": "Other"
+      }
+    },
+    "projectDetails": {
+      "label": "Tell us about your project idea (optional)",
+      "placeholder": "What are you working on or want to build?"
+    },
+    "social": {
+      "title": "Connect with the community",
+      "subtitle": "Help us connect you with fellow developers (all optional)",
+      "github": {
+        "label": "GitHub Username",
+        "placeholder": "your-github-username"
+      },
+      "linkedin": {
+        "label": "LinkedIn Profile",
+        "placeholder": "https://linkedin.com/in/yourprofile"
+      },
+      "discord": {
+        "label": "Discord Username",
+        "placeholder": "username#1234"
+      }
+    },
+    "buttons": {
+      "continue": "Continue",
+      "back": "Back",
+      "join": "Join Community",
+      "joining": "Joining...",
+      "skipEmail": "Skip and join with just email →",
+      "skipNow": "Skip and join now →"
+    },
+    "messages": {
+      "success": "Welcome to the community! Check your email to verify your account.",
+      "error": "Something went wrong. Please try again later.",
+      "accountCreated": "Account created successfully! Please check your email to verify your address and complete your registration."
+    }
+  },
+  "features": {
+    "title": "What Makes Us Special",
+    "ai": {
+      "title": "AI-Powered Development",
+      "description": "Explore cutting-edge AI tools and techniques that are revolutionizing how we build software."
+    },
+    "projects": {
+      "title": "Collaborative Projects",
+      "description": "Work together on real projects, from web apps to AI tools, and learn from each other."
+    },
+    "community": {
+      "title": "Community Learning",
+      "description": "Regular meetups, workshops, and coding sessions in Hamburg's vibrant tech ecosystem."
+    }
+  },
+  "footer": {
+    "copyright": "© 2024 Vibe Coding Hamburg. Building the future, one line of code at a time."
+  },
+  "verification": {
+    "title": "Email Verification",
+    "success": {
+      "title": "Email Verified Successfully! 🎉",
+      "message": "Welcome to Vibe Coding Hamburg! Your email has been verified and your account is now active.",
+      "nextSteps": "What's next?",
+      "steps": {
+        "events": "Join our upcoming AI Builder Cafe events",
+        "connect": "Connect with fellow developers",
+        "projects": "Share your project ideas and get feedback",
+        "learn": "Learn about the latest AI tools and techniques"
+      },
+      "button": "Explore Community"
+    },
+    "error": {
+      "title": "Verification Failed",
+      "invalid": "Invalid or expired verification token. Please check your email for the correct link or request a new verification email.",
+      "general": "Something went wrong during verification. Please try again or contact support."
+    }
+  },
+  "email": {
+    "verification": {
+      "subject": "Please verify your email address - Vibe Coding Hamburg",
+      "title": "Welcome to Vibe Coding Hamburg!",
+      "subtitle": "Please verify your email address to complete your registration",
+      "greeting": "Hi {{name}}! 👋",
+      "message": "Thank you for joining our community of developers exploring AI and software development in Hamburg!",
+      "instruction": "To complete your registration and start receiving community updates, please verify your email address by clicking the button below:",
+      "button": "Verify Email Address",
+      "linkText": "Or copy and paste this link into your browser:",
+      "expiry": "This verification link will expire in 24 hours.",
+      "ignore": "If you didn't create an account with Vibe Coding Hamburg, you can safely ignore this email."
+    },
+    "welcome": {
+      "subject": "Welcome to Vibe Coding Hamburg! 🚀",
+      "title": "Welcome to Vibe Coding Hamburg!",
+      "subtitle": "Where AI meets creativity in Hamburg's tech scene",
+      "greeting": "Hi {{name}}! 👋",
+      "message": "We're excited to have you join our community of developers exploring the intersection of artificial intelligence and software development.",
+      "projectInterest": "We noticed you're interested in {{projectInterest}} projects - that's awesome! Our community is full of like-minded developers who love to collaborate and share knowledge.",
+      "fallbackMessage": "Our community is full of like-minded developers who love to collaborate and share knowledge.",
+      "nextSteps": "What's Next?",
+      "steps": {
+        "events": "Join our upcoming AI Builder Cafe events",
+        "connect": "Connect with fellow developers on our Discord/Mattermost",
+        "projects": "Share your project ideas and get feedback",
+        "learn": "Learn about the latest AI tools and techniques"
+      },
+      "keepInTouch": "Keep an eye on your inbox for event invitations and community updates!",
+      "button": "Visit Our Website",
+      "signature": "Happy coding!<br>The Vibe Coding Hamburg Team",
+      "unsubscribe": "You're receiving this email because you verified your account with Vibe Coding Hamburg.",
+      "unsubscribeLink": "Unsubscribe from all emails",
+      "preferencesLink": "Manage email preferences"
+    }
+  },
+  "language": {
+    "switch": "Switch Language",
+    "english": "English",
+    "german": "Deutsch"
+  }
+} 

@@ -21,4 +21,25 @@ export default defineConfig({
     }),
     tsconfigPaths(),
   ],
+  build: {
+    target: "esnext",
+  },
+  esbuild: {
+    target: "esnext",
+  },
+  server: {
+    port: parseInt(process.env.PORT || "5173"),
+    host: true,
+    fs: {
+      // Exclude test files from being served by Vite
+      deny: ['**/*.test.*', '**/*.spec.*', '**/__tests__/**'],
+    },
+  },
+  optimizeDeps: {
+    // Exclude test files from dependency optimization
+    exclude: ['vitest'],
+    esbuildOptions: {
+      target: "esnext",
+    },
+  },
 });

@@ -2,7 +2,7 @@ import type { ActionFunctionArgs, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { Form, useActionData, useLoaderData, useNavigation } from "@remix-run/react";
 import { emailService } from "~/services/email.server";
-import { runEmailTest } from "~/services/__tests__/email.integration.test";
+// import { runEmailTest } from "~/services/__tests__/email.integration.test"; // Removed to prevent dev server conflicts
 
 export async function loader({ request }: LoaderFunctionArgs) {
   // Check if email configuration is available
@@ -92,11 +92,12 @@ export async function action({ request }: ActionFunctionArgs) {
       }
 
       case "run-full-test": {
-        const testResult = await runEmailTest();
+        // Full test functionality temporarily disabled to prevent dev server conflicts
+        // Use individual tests above or run `npm test` in the terminal
         return json({ 
           type: "full-test", 
-          success: testResult, 
-          message: testResult ? "All tests passed!" : "Some tests failed - check console for details" 
+          success: false, 
+          message: "Full test suite disabled in development. Use individual tests above or run 'npm test' in terminal." 
         });
       }
 

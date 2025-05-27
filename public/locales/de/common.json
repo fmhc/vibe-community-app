@@ -1,0 +1,159 @@
+{
+  "site": {
+    "title": "Vibe Coding Hamburg - Tritt unserer KI-Community bei",
+    "description": "Tritt Hamburgs lebhaftester KI-gestützter Coding-Community bei. Vernetze dich mit anderen Entwicklern, arbeite an spannenden Projekten und erkunde die Zukunft des Programmierens mit KI-Tools."
+  },
+  "header": {
+    "title": "Vibe Coding Hamburg",
+    "subtitle": "Wo KI auf Kreativität in Hamburgs Tech-Szene trifft",
+    "description": "Tritt unserer Community von Entwicklern bei, die die Schnittstelle zwischen künstlicher Intelligenz und Softwareentwicklung erkunden. Baue Projekte, teile Wissen und gestalte die Zukunft des Programmierens."
+  },
+  "form": {
+    "title": "Tritt Vibe Coding Hamburg bei",
+    "subtitle": "Sei Teil von Hamburgs lebhaftester KI-gestützter Coding-Community",
+    "email": {
+      "label": "E-Mail-Adresse",
+      "placeholder": "deine@email.com",
+      "help": "Wir senden dir eine Bestätigungs-E-Mail zum Loslegen",
+      "required": "E-Mail-Adresse ist erforderlich.",
+      "invalid": "Bitte gib eine gültige E-Mail-Adresse ein.",
+      "exists": "Diese E-Mail ist bereits registriert. Bitte verwende eine andere E-Mail oder kontaktiere uns, wenn du Hilfe benötigst."
+    },
+    "name": {
+      "label": "Name (optional)",
+      "placeholder": "Wie sollen wir dich nennen?",
+      "help": "Du kannst das später immer noch hinzufügen"
+    },
+    "experience": {
+      "label": "Wie wohl fühlst du dich beim Programmieren? (optional)",
+      "levels": {
+        "beginner": "Gerade erst angefangen 🌱",
+        "learning": "Lerne die Grundlagen 📚",
+        "building": "Baue Vertrauen auf 💪",
+        "comfortable": "Ziemlich sicher 🚀",
+        "experienced": "Sehr erfahren 🎯"
+      }
+    },
+    "project": {
+      "label": "Welche Art von Projekt interessiert dich am meisten? (optional)",
+      "options": {
+        "web": "Web-App",
+        "ai": "KI-Tool",
+        "mobile": "Mobile App",
+        "other": "Andere"
+      }
+    },
+    "projectDetails": {
+      "label": "Erzähl uns von deiner Projektidee (optional)",
+      "placeholder": "Woran arbeitest du oder was möchtest du bauen?"
+    },
+    "social": {
+      "title": "Vernetze dich mit der Community",
+      "subtitle": "Hilf uns, dich mit anderen Entwicklern zu vernetzen (alles optional)",
+      "github": {
+        "label": "GitHub-Benutzername",
+        "placeholder": "dein-github-benutzername"
+      },
+      "linkedin": {
+        "label": "LinkedIn-Profil",
+        "placeholder": "https://linkedin.com/in/deinprofil"
+      },
+      "discord": {
+        "label": "Discord-Benutzername",
+        "placeholder": "benutzername#1234"
+      }
+    },
+    "buttons": {
+      "continue": "Weiter",
+      "back": "Zurück",
+      "join": "Community beitreten",
+      "joining": "Trete bei...",
+      "skipEmail": "Überspringen und nur mit E-Mail beitreten →",
+      "skipNow": "Überspringen und jetzt beitreten →"
+    },
+    "messages": {
+      "success": "Willkommen in der Community! Überprüfe deine E-Mails, um dein Konto zu verifizieren.",
+      "error": "Etwas ist schiefgelaufen. Bitte versuche es später erneut.",
+      "accountCreated": "Konto erfolgreich erstellt! Bitte überprüfe deine E-Mails, um deine Adresse zu verifizieren und deine Registrierung abzuschließen."
+    }
+  },
+  "features": {
+    "title": "Was uns besonders macht",
+    "ai": {
+      "title": "KI-gestützte Entwicklung",
+      "description": "Erkunde modernste KI-Tools und -Techniken, die die Art, wie wir Software entwickeln, revolutionieren."
+    },
+    "projects": {
+      "title": "Kollaborative Projekte",
+      "description": "Arbeite gemeinsam an echten Projekten, von Web-Apps bis hin zu KI-Tools, und lerne voneinander."
+    },
+    "community": {
+      "title": "Community-Lernen",
+      "description": "Regelmäßige Meetups, Workshops und Coding-Sessions in Hamburgs lebhaftem Tech-Ökosystem."
+    }
+  },
+  "footer": {
+    "copyright": "© 2024 Vibe Coding Hamburg. Wir bauen die Zukunft, eine Codezeile nach der anderen."
+  },
+  "verification": {
+    "title": "E-Mail-Verifizierung",
+    "success": {
+      "title": "E-Mail erfolgreich verifiziert! 🎉",
+      "message": "Willkommen bei Vibe Coding Hamburg! Deine E-Mail wurde verifiziert und dein Konto ist jetzt aktiv.",
+      "nextSteps": "Was kommt als nächstes?",
+      "steps": {
+        "events": "Nimm an unseren kommenden AI Builder Cafe Events teil",
+        "connect": "Vernetze dich mit anderen Entwicklern",
+        "projects": "Teile deine Projektideen und erhalte Feedback",
+        "learn": "Lerne über die neuesten KI-Tools und -Techniken"
+      },
+      "button": "Community erkunden"
+    },
+    "error": {
+      "title": "Verifizierung fehlgeschlagen",
+      "invalid": "Ungültiger oder abgelaufener Verifizierungstoken. Bitte überprüfe deine E-Mail für den korrekten Link oder fordere eine neue Verifizierungs-E-Mail an.",
+      "general": "Etwas ist bei der Verifizierung schiefgelaufen. Bitte versuche es erneut oder kontaktiere den Support."
+    }
+  },
+  "email": {
+    "verification": {
+      "subject": "Bitte verifiziere deine E-Mail-Adresse - Vibe Coding Hamburg",
+      "title": "Willkommen bei Vibe Coding Hamburg!",
+      "subtitle": "Bitte verifiziere deine E-Mail-Adresse, um deine Registrierung abzuschließen",
+      "greeting": "Hallo {{name}}! 👋",
+      "message": "Danke, dass du unserer Community von Entwicklern beigetreten bist, die KI und Softwareentwicklung in Hamburg erkunden!",
+      "instruction": "Um deine Registrierung abzuschließen und Community-Updates zu erhalten, verifiziere bitte deine E-Mail-Adresse, indem du auf den Button unten klickst:",
+      "button": "E-Mail-Adresse verifizieren",
+      "linkText": "Oder kopiere und füge diesen Link in deinen Browser ein:",
+      "expiry": "Dieser Verifizierungslink läuft in 24 Stunden ab.",
+      "ignore": "Wenn du kein Konto bei Vibe Coding Hamburg erstellt hast, kannst du diese E-Mail sicher ignorieren."
+    },
+    "welcome": {
+      "subject": "Willkommen bei Vibe Coding Hamburg! 🚀",
+      "title": "Willkommen bei Vibe Coding Hamburg!",
+      "subtitle": "Wo KI auf Kreativität in Hamburgs Tech-Szene trifft",
+      "greeting": "Hallo {{name}}! 👋",
+      "message": "Wir freuen uns, dass du unserer Community von Entwicklern beigetreten bist, die die Schnittstelle zwischen künstlicher Intelligenz und Softwareentwicklung erkunden.",
+      "projectInterest": "Wir haben bemerkt, dass du dich für {{projectInterest}}-Projekte interessierst - das ist großartig! Unsere Community ist voller gleichgesinnter Entwickler, die gerne zusammenarbeiten und Wissen teilen.",
+      "fallbackMessage": "Unsere Community ist voller gleichgesinnter Entwickler, die gerne zusammenarbeiten und Wissen teilen.",
+      "nextSteps": "Was kommt als nächstes?",
+      "steps": {
+        "events": "Nimm an unseren kommenden AI Builder Cafe Events teil",
+        "connect": "Vernetze dich mit anderen Entwicklern auf unserem Discord/Mattermost",
+        "projects": "Teile deine Projektideen und erhalte Feedback",
+        "learn": "Lerne über die neuesten KI-Tools und -Techniken"
+      },
+      "keepInTouch": "Halte Ausschau nach Event-Einladungen und Community-Updates in deinem Posteingang!",
+      "button": "Besuche unsere Website",
+      "signature": "Happy Coding!<br>Das Vibe Coding Hamburg Team",
+      "unsubscribe": "Du erhältst diese E-Mail, weil du dein Konto bei Vibe Coding Hamburg verifiziert hast.",
+      "unsubscribeLink": "Von allen E-Mails abmelden",
+      "preferencesLink": "E-Mail-Einstellungen verwalten"
+    }
+  },
+  "language": {
+    "switch": "Sprache wechseln",
+    "english": "English",
+    "german": "Deutsch"
+  }
+} 
