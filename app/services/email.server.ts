@@ -150,6 +150,79 @@ class EmailService {
     });
   }
 
+  async sendPasswordResetEmail(to: string, name: string, resetToken: string, locale: string = 'en') {
+    const resetUrl = `${process.env.APP_URL || 'http://localhost:3000'}/reset-password?token=${resetToken}`;
+    
+    const subject = 'Reset Your Password - Vibe Coding Hamburg';
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #ff006e, #8338ec); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+            .cta { background: #00f5ff; color: #0a0a0f; padding: 15px 30px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 20px 0; font-weight: bold; font-size: 16px; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🌊 Vibe Coding Hamburg</h1>
+              <p>Reset Your Password</p>
+            </div>
+            <div class="content">
+              <h2>Hi ${name},</h2>
+              
+              <p>We received a request to reset your password for your Vibe Coding Hamburg account.</p>
+              
+              <p>Click the button below to create a new password:</p>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${resetUrl}" class="cta">Reset Password</a>
+              </div>
+              
+              <p>If you didn't request this password reset, you can safely ignore this email. Your password will remain unchanged.</p>
+              
+              <p><strong>This link will expire in 24 hours for security reasons.</strong></p>
+              
+              <div class="footer">
+                <p>If the button doesn't work, copy and paste this link into your browser:</p>
+                <p style="word-break: break-all; background: #e9ecef; padding: 10px; border-radius: 4px; font-family: monospace;">${resetUrl}</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+      Reset Your Password - Vibe Coding Hamburg
+      
+      Hi ${name},
+      
+      We received a request to reset your password for your Vibe Coding Hamburg account.
+      
+      Click this link to create a new password: ${resetUrl}
+      
+      If you didn't request this password reset, you can safely ignore this email.
+      
+      This link will expire in 24 hours for security reasons.
+      
+      © 2024 Vibe Coding Hamburg
+    `;
+
+    return this.sendEmail({
+      to,
+      subject,
+      text,
+      html,
+    });
+  }
+
   async sendWelcomeEmail(memberData: { name: string; email: string; projectInterest?: string; unsubscribeToken?: string }, locale: string = 'en') {
     const t = await i18next.getFixedT(locale);
     const subject = t('email.welcome.subject');

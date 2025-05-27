@@ -38,7 +38,7 @@ export async function action({ request }: ActionFunctionArgs) {
 
   try {
     // Authenticate with Directus
-    const authResult = await directusService.authenticate(email, password);
+    const authResult = await directusService.authenticateUser(email, password);
     
     if (!authResult.success) {
       return json({
@@ -48,7 +48,7 @@ export async function action({ request }: ActionFunctionArgs) {
     }
 
     // Create session and redirect
-    const headers = await directusService.createSession(authResult.user, authResult.token, remember);
+    const headers = await directusService.createSession(authResult.user!, authResult.token!, remember);
     
     return redirect("/dashboard", { headers });
   } catch (error) {

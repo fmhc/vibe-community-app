@@ -1,5 +1,6 @@
 import type { ActionFunctionArgs, MetaFunction, LoaderFunctionArgs } from "@remix-run/node";
 import { json } from "@remix-run/node";
+import { Link } from "@remix-run/react";
 import { useTranslation } from "react-i18next";
 import CommunitySignupForm from "~/components/CommunitySignupForm";
 import LanguageSwitcher from "~/components/LanguageSwitcher";
@@ -132,6 +133,21 @@ export default function Index() {
       {/* Main Content */}
       <main className="relative z-10 pb-12">
         <CommunitySignupForm />
+        
+        {/* Login Link for Existing Users */}
+        <div className="max-w-md mx-auto mt-8 text-center px-6">
+          <div className="bg-vaporwave-card/50 backdrop-blur-sm border border-vaporwave-cyan/20 rounded-xl p-6">
+            <p className="text-gray-400 text-sm mb-3">
+              Already a member?
+            </p>
+            <Link
+              to="/login"
+              className="inline-block text-vaporwave-cyan hover:text-vaporwave-pink transition-colors font-medium underline"
+            >
+              Sign in to your dashboard →
+            </Link>
+          </div>
+        </div>
       </main>
 
       {/* Features Section */}

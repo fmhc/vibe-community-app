@@ -96,6 +96,81 @@ class DirectusService {
     return randomBytes(32).toString('hex');
   }
 
+  // User authentication methods
+  async authenticateUser(email: string, password: string) {
+    try {
+      // Create a new client instance for user authentication
+      const userClient = createDirectus<DirectusSchema>(process.env.DIRECTUS_URL!)
+        .with(rest())
+        .with(authentication());
+
+      // Attempt to login with user credentials
+      const authResult = await userClient.login(email, password);
+      
+      if (!authResult.access_token) {
+        return { success: false, error: 'Invalid credentials' };
+      }
+
+      // Get user details
+      const user = await userClient.request(readUser('me'));
+      
+      return { 
+        success: true, 
+        user: user,
+        token: authResult.access_token 
+      };
+    } catch (error) {
+      console.error('User authentication failed:', error);
+      return { success: false, error: 'Invalid email or password' };
+    }
+  }
+
+  async getSession(request: Request) {
+    try {
+      const session = await sessionStorage.getSession(request.headers.get("Cookie"));
+      const userId = session.get("userId");
+      const token = session.get("token");
+      
+      if (!userId || !token) {
+        return null;
+      }
+
+      // Verify token is still valid by making a request
+      const userClient = createDirectus<DirectusSchema>(process.env.DIRECTUS_URL!)
+        .with(rest())
+        .with(authentication());
+      
+      userClient.setToken(token);
+      const user = await userClient.request(readUser('me'));
+      
+      return { user, token };
+    } catch (error) {
+      console.error('Session validation failed:', error);
+      return null;
+    }
+  }
+
+  async createSession(user: any, token: string, remember: boolean = false) {
+    const session = await sessionStorage.getSession();
+    session.set("userId", user.id);
+    session.set("token", token);
+    
+    const maxAge = remember ? 60 * 60 * 24 * 30 : 60 * 60 * 24; // 30 days or 1 day
+    
+    return {
+      "Set-Cookie": await sessionStorage.commitSession(session, {
+        maxAge: maxAge,
+      }),
+    };
+  }
+
+  async destroySession(request: Request) {
+    const session = await sessionStorage.getSession(request.headers.get("Cookie"));
+    return {
+      "Set-Cookie": await sessionStorage.destroySession(session),
+    };
+  }
+
   // User account management
   async createUserAccount(userData: {
     email: string;
