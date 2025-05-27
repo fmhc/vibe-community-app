@@ -3,3 +3,33 @@ node_modules
 /.cache
 /build
 .env
+
+# Test Results and Reports
+/test-results/
+/playwright-report/
+/coverage/
+
+# Playwright Videos and Screenshots
+*.webm
+*.png
+*.jpg
+test-results/**/*.png
+test-results/**/*.webm
+test-results/**/*.zip
+
+# Test artifacts
+playwright/.auth/
+.playwright/
+
+# Log files
+*.log
+logs/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

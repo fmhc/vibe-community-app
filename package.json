@@ -15,6 +15,7 @@
     "test:email-unit": "vitest run app/services/__tests__/email.server.test.ts",
     "test:email-integration": "vitest run app/services/__tests__/email.integration.test.ts",
     "test:directus": "node scripts/test-directus-connection.js",
+    "test:production": "node scripts/test-production-registration.js",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:debug": "playwright test --debug",
