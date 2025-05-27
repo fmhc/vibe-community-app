@@ -103,7 +103,7 @@ export default function CommunitySignupForm() {
           </div>
         </div>
 
-        <Form method="post" className="space-y-6">
+        <Form method="post" action="/?index" className="space-y-6">
           {/* Hidden inputs to ensure all form data is submitted regardless of current step */}
           <input type="hidden" name="email" value={formData.email} />
           <input type="hidden" name="name" value={formData.name} />
