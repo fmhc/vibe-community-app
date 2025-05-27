@@ -178,6 +178,39 @@ export default function Dashboard() {
               <div className="text-sm text-gray-400">Coming soon: Event calendar</div>
             </div>
 
+            {/* GitHub Integration Card */}
+            <div className="bg-vaporwave-card/80 backdrop-blur-sm border border-vaporwave-cyan/20 rounded-xl p-6 shadow-2xl">
+              <div className="flex items-center mb-4">
+                <span className="text-2xl mr-3">🐙</span>
+                <h3 className="text-xl font-semibold text-vaporwave-cyan">GitHub</h3>
+              </div>
+              <p className="text-gray-300 mb-4">Connect your GitHub profile to showcase your projects.</p>
+              {data.member?.github_username ? (
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-2 text-green-400">
+                    <span>✓</span>
+                    <span className="text-sm">Connected as @{data.member.github_username}</span>
+                  </div>
+                  <div className="text-sm text-gray-400">
+                    <p>Skills: {data.member.skills?.join(', ') || 'Not analyzed yet'}</p>
+                  </div>
+                  <Link
+                    to="/auth/github"
+                    className="inline-block bg-gray-600 hover:bg-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-sm"
+                  >
+                    Refresh Profile
+                  </Link>
+                </div>
+              ) : (
+                <Link
+                  to="/auth/github"
+                  className="inline-block bg-gradient-to-r from-gray-700 to-gray-600 hover:from-gray-600 hover:to-gray-500 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300"
+                >
+                  Connect GitHub
+                </Link>
+              )}
+            </div>
+
             {/* Settings Card */}
             <div className="bg-vaporwave-card/80 backdrop-blur-sm border border-vaporwave-cyan/20 rounded-xl p-6 shadow-2xl">
               <div className="flex items-center mb-4">
