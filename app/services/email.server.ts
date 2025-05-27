@@ -223,6 +223,253 @@ class EmailService {
     });
   }
 
+  async sendAccountDeletionEmail(to: string, name: string, locale: string = 'en') {
+    const subject = 'Account Deletion Confirmation - Vibe Coding Hamburg';
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #ff006e, #8338ec); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🌊 Vibe Coding Hamburg</h1>
+              <p>Account Deletion Confirmation</p>
+            </div>
+            <div class="content">
+              <h2>Hi ${name},</h2>
+              
+              <p>This email confirms that your Vibe Coding Hamburg account has been successfully deleted.</p>
+              
+              <p><strong>What was deleted:</strong></p>
+              <ul>
+                <li>Your account information</li>
+                <li>Community profile and preferences</li>
+                <li>Email subscription settings</li>
+                <li>All personal data associated with your account</li>
+              </ul>
+              
+              <p>As required by GDPR, we have removed all your personal data from our systems. Some anonymized data may be retained for statistical purposes only.</p>
+              
+              <p>Thank you for being part of the Vibe Coding Hamburg community. You're always welcome to rejoin in the future!</p>
+              
+              <div class="footer">
+                <p>If you have any questions about this deletion, please contact: <a href="mailto:privacy@vibe-coding.hamburg">privacy@vibe-coding.hamburg</a></p>
+                <p>© 2024 Vibe Coding Hamburg</p>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+      Account Deletion Confirmation - Vibe Coding Hamburg
+      
+      Hi ${name},
+      
+      This email confirms that your Vibe Coding Hamburg account has been successfully deleted.
+      
+      What was deleted:
+      - Your account information
+      - Community profile and preferences
+      - Email subscription settings
+      - All personal data associated with your account
+      
+      As required by GDPR, we have removed all your personal data from our systems.
+      
+      Thank you for being part of the Vibe Coding Hamburg community!
+      
+      If you have questions, contact: privacy@vibe-coding.hamburg
+      
+      © 2024 Vibe Coding Hamburg
+    `;
+
+    return this.sendEmail({
+      to,
+      subject,
+      text,
+      html,
+    });
+  }
+
+  async sendDataRequestEmail(request: {
+    userEmail: string;
+    userName: string;
+    requestType: string;
+    description: string;
+    userId: string;
+  }) {
+    const subject = `GDPR Data Request: ${request.requestType} - ${request.userEmail}`;
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #333; color: white; padding: 20px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+            .highlight { background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; margin: 15px 0; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🔒 GDPR Data Request</h1>
+              <p>Privacy Team Notification</p>
+            </div>
+            <div class="content">
+              <h2>New Data Request Submitted</h2>
+              
+              <div class="highlight">
+                <p><strong>User:</strong> ${request.userName} (${request.userEmail})</p>
+                <p><strong>User ID:</strong> ${request.userId}</p>
+                <p><strong>Request Type:</strong> ${request.requestType}</p>
+                <p><strong>Submitted:</strong> ${new Date().toISOString()}</p>
+              </div>
+              
+              <h3>Request Description:</h3>
+              <p>${request.description}</p>
+              
+              <h3>Required Actions:</h3>
+              <ul>
+                <li>Verify user identity</li>
+                <li>Process request according to GDPR requirements</li>
+                <li>Respond within 30 days</li>
+                <li>Document the response</li>
+              </ul>
+              
+              <p><strong>Response required by:</strong> ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}</p>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+      GDPR Data Request - Privacy Team Notification
+      
+      User: ${request.userName} (${request.userEmail})
+      User ID: ${request.userId}
+      Request Type: ${request.requestType}
+      Submitted: ${new Date().toISOString()}
+      
+      Description:
+      ${request.description}
+      
+      Required Actions:
+      - Verify user identity
+      - Process request according to GDPR
+      - Respond within 30 days
+      - Document the response
+      
+      Response required by: ${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}
+    `;
+
+    return this.sendEmail({
+      to: 'privacy@vibe-coding.hamburg',
+      subject,
+      text,
+      html,
+    });
+  }
+
+  async sendCampaignEmail(campaign: {
+    to: string;
+    name: string;
+    subject: string;
+    content: string;
+    templateType: 'newsletter' | 'event' | 'project' | 'announcement';
+    unsubscribeToken?: string;
+  }) {
+    const templateStyles = {
+      newsletter: { headerColor: '#8338ec', emoji: '📰' },
+      event: { headerColor: '#06d6a0', emoji: '📅' },
+      project: { headerColor: '#ffd166', emoji: '💡' },
+      announcement: { headerColor: '#ef233c', emoji: '📢' }
+    };
+
+    const template = templateStyles[campaign.templateType];
+    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, ${template.headerColor}, #ff006e); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+            .footer { text-align: center; margin-top: 20px; color: #666; font-size: 14px; }
+            .button { background: #00f5ff; color: #0a0a0f; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 20px 0; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>${template.emoji} Vibe Coding Hamburg</h1>
+              <p>${campaign.templateType.charAt(0).toUpperCase() + campaign.templateType.slice(1)}</p>
+            </div>
+            <div class="content">
+              <h2>Hi ${campaign.name},</h2>
+              
+              <div>
+                ${campaign.content}
+              </div>
+              
+              <div class="footer">
+                <p>Best regards,<br>The Vibe Coding Hamburg Team</p>
+                ${campaign.unsubscribeToken ? `
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+                  <p style="font-size: 12px; color: #888;">
+                    <a href="${process.env.APP_URL || 'http://localhost:3000'}/unsubscribe?token=${campaign.unsubscribeToken}" style="color: #666;">Unsubscribe</a> | 
+                    <a href="${process.env.APP_URL || 'http://localhost:3000'}/email-preferences?token=${campaign.unsubscribeToken}" style="color: #666;">Email Preferences</a>
+                  </p>
+                </div>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+      ${template.emoji} Vibe Coding Hamburg - ${campaign.templateType.charAt(0).toUpperCase() + campaign.templateType.slice(1)}
+      
+      Hi ${campaign.name},
+      
+      ${campaign.content.replace(/<[^>]*>/g, '')}
+      
+      Best regards,
+      The Vibe Coding Hamburg Team
+      
+      ${campaign.unsubscribeToken ? `
+      ---
+      Unsubscribe: ${process.env.APP_URL || 'http://localhost:3000'}/unsubscribe?token=${campaign.unsubscribeToken}
+      Email Preferences: ${process.env.APP_URL || 'http://localhost:3000'}/email-preferences?token=${campaign.unsubscribeToken}
+      ` : ''}
+    `;
+
+    return this.sendEmail({
+      to: campaign.to,
+      subject: campaign.subject,
+      text,
+      html,
+    });
+  }
+
   async sendWelcomeEmail(memberData: { name: string; email: string; projectInterest?: string; unsubscribeToken?: string }, locale: string = 'en') {
     const t = await i18next.getFixedT(locale);
     const subject = t('email.welcome.subject');

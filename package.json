@@ -13,7 +13,14 @@
     "test:watch": "vitest",
     "test:email": "tsx scripts/test-email.ts",
     "test:email-unit": "vitest run app/services/__tests__/email.server.test.ts",
-    "test:email-integration": "vitest run app/services/__tests__/email.integration.test.ts"
+    "test:email-integration": "vitest run app/services/__tests__/email.integration.test.ts",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:e2e:headed": "playwright test --headed",
+    "test:all": "npm run test && npm run test:e2e",
+    "test:ci": "npm run test && npm run test:e2e --project=chromium",
+    "install-browsers": "npx playwright install"
   },
   "dependencies": {
     "@directus/sdk": "^19.1.0",
@@ -34,9 +41,11 @@
     "react-i18next": "^15.5.2",
     "remix-i18next": "^7.2.1",
     "tsx": "^4.19.4",
-    "vitest": "^3.1.4"
+    "vitest": "^3.1.4",
+    "zod": "^3.25.30"
   },
   "devDependencies": {
+    "@playwright/test": "^1.52.0",
     "@remix-run/dev": "^2.16.7",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",

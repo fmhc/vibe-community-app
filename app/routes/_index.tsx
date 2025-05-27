@@ -6,7 +6,10 @@ import CommunitySignupForm from "~/components/CommunitySignupForm";
 import LanguageSwitcher from "~/components/LanguageSwitcher";
 import { directusService } from "~/services/directus.server";
 import { emailService } from "~/services/email.server";
+import { mattermostService } from "~/services/mattermost.server";
 import i18next from "~/i18n.server";
+import { communitySignupSchema, validateFormData, sanitizeEmail } from "~/lib/validation.server";
+import { logger, getRequestContext, checkRateLimit } from "~/lib/logger.server";
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
@@ -24,76 +27,142 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export async function action({ request }: ActionFunctionArgs) {
+  const requestContext = getRequestContext(request);
   const t = await i18next.getFixedT(request);
-  const formData = await request.formData();
   
-  const email = formData.get("email") as string;
-  const name = formData.get("name") as string;
-  const experienceLevel = parseInt(formData.get("experienceLevel") as string) || 50;
-  const projectInterest = formData.get("projectInterest") as string;
-  const projectDetails = formData.get("projectDetails") as string;
-  const githubUsername = formData.get("githubUsername") as string;
-  const linkedinUrl = formData.get("linkedinUrl") as string;
-  const discordUsername = formData.get("discordUsername") as string;
-
-  // Helper function to convert empty strings to undefined
-  const emptyToUndefined = (value: string) => value && value.trim() !== '' ? value.trim() : undefined;
-
-  // Validate required fields - only email is required
-  if (!email || email.trim() === '') {
-    return json({ error: t('form.email.required') }, { status: 400 });
-  }
-
-  // Validate email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email.trim())) {
-    return json({ error: t('form.email.invalid') }, { status: 400 });
-  }
-
+  logger.request(request.method, requestContext.path!, requestContext);
+  
   try {
+    // Rate limiting check
+    const rateLimitKey = `signup:${requestContext.ip}`;
+    const rateLimit = checkRateLimit(rateLimitKey, 15 * 60 * 1000, 3); // 3 attempts per 15 minutes
+    
+    if (!rateLimit.allowed) {
+      logger.security('Signup rate limit exceeded', 'medium', {
+        ...requestContext,
+        rateLimitKey,
+        resetTime: rateLimit.resetTime
+      });
+      
+      return json({ 
+        error: 'Too many signup attempts. Please try again later.',
+        rateLimited: true,
+        resetTime: rateLimit.resetTime
+      }, { status: 429 });
+    }
+
+    const formData = await request.formData();
+    
+    // Validate form data using schema
+    const validation = validateFormData(communitySignupSchema, formData);
+    
+    if (!validation.success) {
+      logger.warn('Form validation failed', {
+        ...requestContext,
+        service: 'signup',
+        method: 'validateForm',
+        errors: validation.errors
+      });
+      
+      return json({ 
+        error: Object.values(validation.errors)[0], // Return first error
+        validationErrors: validation.errors 
+      }, { status: 400 });
+    }
+
+    const { email: rawEmail, name, experienceLevel, projectInterest, projectDetails, githubUsername, linkedinUrl, discordUsername } = validation.data;
+    const email = sanitizeEmail(rawEmail);
+
+    logger.serviceCall('directus', 'checkEmailExists', 'Checking if email exists', {
+      email: email.split('@')[0] + '@***' // Log partial email for privacy
+    });
+
     // Check if email already exists
-    const emailExists = await directusService.checkEmailExists(email.trim());
+    const emailExists = await directusService.checkEmailExists(email);
     if (emailExists) {
+      logger.warn('Signup attempt with existing email', {
+        ...requestContext,
+        service: 'signup',
+        email: email.split('@')[0] + '@***'
+      });
+      
       return json({ error: t('form.email.exists') }, { status: 400 });
     }
 
     // Create new user account with Directus integration
+    logger.serviceCall('directus', 'createUserAccount', 'Creating new user account', {
+      email: email.split('@')[0] + '@***',
+      hasName: !!name,
+      experienceLevel
+    });
+
     const result = await directusService.createUserAccount({
-      email: email.trim(),
-      name: emptyToUndefined(name),
+      email,
+      name: name || undefined,
       experience_level: experienceLevel,
-      project_interest: emptyToUndefined(projectInterest),
-      project_details: emptyToUndefined(projectDetails),
-      github_username: emptyToUndefined(githubUsername),
-      linkedin_url: emptyToUndefined(linkedinUrl),
-      discord_username: emptyToUndefined(discordUsername),
+      project_interest: projectInterest || undefined,
+      project_details: projectDetails || undefined,
+      github_username: githubUsername || undefined,
+      linkedin_url: linkedinUrl || undefined,
+      discord_username: discordUsername || undefined,
     });
 
     if (!result.success || !result.data) {
-      console.error("Directus createUserAccount failed:", result.error);
+      logger.serviceError('directus', 'createUserAccount', 'Failed to create user account', 
+        new Error(result.error || 'Unknown error'), {
+          ...requestContext,
+          email: email.split('@')[0] + '@***'
+        });
+      
       return json({ error: result.error || t('form.messages.error') }, { status: 500 });
     }
 
     // Send verification email (don't fail the signup if email fails)
     try {
       const locale = await i18next.getLocale(request);
+      
+      logger.serviceCall('email', 'sendVerificationEmail', 'Sending verification email', {
+        email: email.split('@')[0] + '@***',
+        locale
+      });
+
       await emailService.sendVerificationEmail({
-        name: emptyToUndefined(name) || 'New Member', // Fallback name if not provided
-        email: email.trim(),
+        name: name || 'New Member',
+        email,
         verificationToken: result.data.verificationToken,
       }, locale);
-      console.log('Verification email sent successfully to:', email.trim());
+      
+      logger.info('Verification email sent successfully', {
+        ...requestContext,
+        service: 'email',
+        email: email.split('@')[0] + '@***'
+      });
     } catch (emailError) {
-      console.error('Failed to send verification email:', emailError);
+      logger.serviceError('email', 'sendVerificationEmail', 'Failed to send verification email',
+        emailError instanceof Error ? emailError : new Error(String(emailError)), {
+          ...requestContext,
+          email: email.split('@')[0] + '@***'
+        });
       // Continue with successful signup even if email fails
     }
+
+    logger.info('User signup completed successfully', {
+      ...requestContext,
+      service: 'signup',
+      email: email.split('@')[0] + '@***',
+      userId: result.data.directusUser.id
+    });
 
     return json({ 
       success: true, 
       message: t('form.messages.accountCreated')
     });
+    
   } catch (error) {
-    console.error("Signup error:", error);
+    logger.serviceError('signup', 'action', 'Unexpected error during signup',
+      error instanceof Error ? error : new Error(String(error)), 
+      requestContext);
+    
     return json({ error: t('form.messages.error') }, { status: 500 });
   }
 }

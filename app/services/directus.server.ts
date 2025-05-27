@@ -1,6 +1,9 @@
 import { createDirectus, rest, authentication, readItems, createItem, updateItem, deleteItem, createUser, readUsers, updateUser, readUser } from '@directus/sdk';
 import { randomBytes } from 'crypto';
 import { createCookieSessionStorage } from '@remix-run/node';
+import { logger, withErrorLogging, type LogContext } from '~/lib/logger.server';
+import { directusCache, cacheKeys, withCache, invalidateUserCache, invalidateEmailCache } from '~/lib/cache.server';
+import { optimizedQuery } from '~/lib/database-optimizer.server';
 
 // Define the schema for Directus users
 interface DirectusUser {
@@ -67,26 +70,86 @@ const sessionStorage = createCookieSessionStorage({
 
 class DirectusService {
   private client;
+  private isAuthenticated = false;
+  private authPromise: Promise<boolean> | null = null;
   
   constructor() {
     const directusUrl = process.env.DIRECTUS_URL;
     const directusKey = process.env.DIRECTUS_KEY;
     
     if (!directusUrl || !directusKey) {
-      throw new Error('DIRECTUS_URL and DIRECTUS_KEY must be set in environment variables');
+      const error = new Error('DIRECTUS_URL and DIRECTUS_KEY must be set in environment variables');
+      logger.error('DirectusService initialization failed', {
+        service: 'directus',
+        method: 'constructor',
+        hasDirectusUrl: !!directusUrl,
+        hasDirectusKey: !!directusKey
+      }, error);
+      throw error;
     }
     
-    this.client = createDirectus<DirectusSchema>(directusUrl)
-      .with(rest())
-      .with(authentication());
+    try {
+      this.client = createDirectus<DirectusSchema>(directusUrl)
+        .with(rest())
+        .with(authentication());
+      
+      logger.info('DirectusService initialized successfully', {
+        service: 'directus',
+        method: 'constructor',
+        directusUrl: directusUrl.replace(/\/\/.*@/, '//***@') // Hide credentials in logs
+      });
+    } catch (error) {
+      logger.error('Failed to create Directus client', {
+        service: 'directus',
+        method: 'constructor'
+      }, error instanceof Error ? error : new Error(String(error)));
+      throw error;
+    }
   }
   
-  async authenticate() {
+  async authenticate(): Promise<boolean> {
+    // Prevent concurrent authentication attempts
+    if (this.authPromise) {
+      return this.authPromise;
+    }
+    
+    if (this.isAuthenticated) {
+      return true;
+    }
+
+    this.authPromise = this.performAuthentication();
+    const result = await this.authPromise;
+    this.authPromise = null;
+    
+    return result;
+  }
+  
+  private async performAuthentication(): Promise<boolean> {
+    const context: LogContext = { service: 'directus', method: 'authenticate' };
+    
     try {
-      await this.client.login(process.env.DIRECTUS_KEY!, process.env.DIRECTUS_SECRET!);
+      const directusKey = process.env.DIRECTUS_KEY;
+      const directusSecret = process.env.DIRECTUS_SECRET;
+      
+      if (!directusKey || !directusSecret) {
+        const error = new Error('DIRECTUS_KEY and DIRECTUS_SECRET must be set');
+        logger.error('Authentication failed - missing credentials', context, error);
+        return false;
+      }
+      
+      await withErrorLogging(
+        () => this.client.login(directusKey, directusSecret),
+        context,
+        'Directus authentication failed'
+      );
+      
+      this.isAuthenticated = true;
+      logger.info('Directus authentication successful', context);
       return true;
     } catch (error) {
-      console.error('Directus authentication failed:', error);
+      this.isAuthenticated = false;
+      logger.serviceError('directus', 'authenticate', 'Authentication failed', 
+        error instanceof Error ? error : new Error(String(error)), context);
       return false;
     }
   }
@@ -182,52 +245,92 @@ class DirectusService {
     linkedin_url?: string;
     discord_username?: string;
   }) {
+    const context: LogContext = { 
+      service: 'directus', 
+      method: 'createUserAccount',
+      email: userData.email.split('@')[0] + '@***'
+    };
+    
     try {
-      await this.authenticate();
+      logger.serviceCall('directus', 'createUserAccount', 'Starting user account creation', {
+        hasName: !!userData.name,
+        experienceLevel: userData.experience_level,
+        hasProjectInterest: !!userData.project_interest
+      });
       
-      // Generate verification token
+      const authResult = await this.authenticate();
+      if (!authResult) {
+        const error = new Error('Failed to authenticate with Directus');
+        logger.serviceError('directus', 'createUserAccount', 'Authentication failed', error, context);
+        return { success: false, error: 'Service authentication failed' };
+      }
+      
+      // Generate secure tokens
       const verificationToken = this.generateToken();
       const unsubscribeToken = this.generateToken();
       
       // Create Directus user account (invited status)
       const fullName = userData.name || 'New Member';
-      const directusUser = await this.client.request(
-        createUser({
-          email: userData.email,
-          first_name: fullName.split(' ')[0],
-          last_name: fullName.split(' ').slice(1).join(' ') || '',
-          status: 'invited',
-          role: process.env.DIRECTUS_COMMUNITY_ROLE_ID || null, // Set community member role
-        })
+      const [firstName, ...lastNameParts] = fullName.split(' ');
+      
+      logger.debug('Creating Directus user account', context);
+      
+      const directusUser = await withErrorLogging(
+        () => this.client.request(
+          createUser({
+            email: userData.email,
+            first_name: firstName,
+            last_name: lastNameParts.join(' ') || '',
+            status: 'invited',
+            role: process.env.DIRECTUS_COMMUNITY_ROLE_ID || null,
+          })
+        ),
+        context,
+        'Failed to create Directus user'
       );
       
+      logger.debug('Creating community member record', { ...context, directusUserId: directusUser.id });
+      
       // Create community member record linked to Directus user
-      const communityMember = await this.client.request(
-        createItem('community_members', {
-          directus_user_id: directusUser.id,
-          email: userData.email,
-          name: userData.name,
-          experience_level: userData.experience_level,
-          project_interest: userData.project_interest,
-          project_details: userData.project_details,
-          github_username: userData.github_username,
-          linkedin_url: userData.linkedin_url,
-          discord_username: userData.discord_username,
-          email_verified: false,
-          email_verification_token: verificationToken,
-          email_verification_sent_at: new Date().toISOString(),
-          email_preferences: {
-            welcome_emails: true,
-            event_invitations: true,
-            newsletter: true,
-            project_notifications: true,
-          },
-          unsubscribe_token: unsubscribeToken,
-          status: 'pending',
-          mattermost_invited: false,
-          discord_invited: false,
-        })
+      const communityMember = await withErrorLogging(
+        () => this.client.request(
+          createItem('community_members', {
+            directus_user_id: directusUser.id,
+            email: userData.email,
+            name: userData.name,
+            experience_level: userData.experience_level,
+            project_interest: userData.project_interest,
+            project_details: userData.project_details,
+            github_username: userData.github_username,
+            linkedin_url: userData.linkedin_url,
+            discord_username: userData.discord_username,
+            email_verified: false,
+            email_verification_token: verificationToken,
+            email_verification_sent_at: new Date().toISOString(),
+            email_preferences: {
+              welcome_emails: true,
+              event_invitations: true,
+              newsletter: true,
+              project_notifications: true,
+            },
+            unsubscribe_token: unsubscribeToken,
+            status: 'pending',
+            mattermost_invited: false,
+            discord_invited: false,
+          })
+        ),
+        context,
+        'Failed to create community member record'
       );
+      
+      // Invalidate caches for this email
+      invalidateEmailCache(userData.email);
+      
+      logger.info('User account created successfully', {
+        ...context,
+        directusUserId: directusUser.id,
+        communityMemberId: communityMember.id
+      });
       
       return { 
         success: true, 
@@ -238,8 +341,13 @@ class DirectusService {
         } 
       };
     } catch (error) {
-      console.error('Error creating user account:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      logger.serviceError('directus', 'createUserAccount', 'Failed to create user account',
+        error instanceof Error ? error : new Error(String(error)), context);
+      
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to create user account' 
+      };
     }
   }
 
@@ -364,15 +472,30 @@ class DirectusService {
   
   async updateCommunityMember(id: string, updates: Partial<CommunityMember>) {
     try {
-      await this.authenticate();
+      const result = await optimizedQuery('updateCommunityMember', async () => {
+        await this.authenticate();
+        
+        const updatedMember = await this.client.request(
+          updateItem('community_members', id, updates)
+        );
+        
+        // Invalidate caches for this user
+        if (updatedMember.email) {
+          invalidateEmailCache(updatedMember.email);
+        }
+        if (updatedMember.id) {
+          invalidateUserCache(updatedMember.id);
+        }
+        
+        return updatedMember;
+      });
       
-      const updatedMember = await this.client.request(
-        updateItem('community_members', id, updates)
-      );
-      
-      return { success: true, data: updatedMember };
+      return { success: true, data: result };
     } catch (error) {
-      console.error('Error updating community member:', error);
+      logger.serviceError('directus', 'updateCommunityMember', 'Error updating community member', 
+        error instanceof Error ? error : new Error(String(error)), {
+          memberId: id
+        });
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
@@ -391,19 +514,33 @@ class DirectusService {
   }
   
   async checkEmailExists(email: string) {
+    const cacheKey = cacheKeys.userByEmail(email);
+    
     try {
-      await this.authenticate();
-      
-      const existingMembers = await this.client.request(
-        readItems('community_members', {
-          filter: { email: { _eq: email } },
-          limit: 1,
-        })
+      return await withCache(
+        directusCache,
+        cacheKey,
+        async () => {
+          return await optimizedQuery('checkEmailExists', async () => {
+            await this.authenticate();
+            
+            const existingMembers = await this.client.request(
+              readItems('community_members', {
+                filter: { email: { _eq: email } },
+                limit: 1,
+              })
+            );
+            
+            return existingMembers.length > 0;
+          });
+        },
+        5 * 60 * 1000 // 5 minute cache
       );
-      
-      return existingMembers.length > 0;
     } catch (error) {
-      console.error('Error checking email:', error);
+      logger.serviceError('directus', 'checkEmailExists', 'Error checking email', 
+        error instanceof Error ? error : new Error(String(error)), {
+          email: email.split('@')[0] + '@***'
+        });
       return false;
     }
   }
@@ -476,23 +613,37 @@ class DirectusService {
   }
 
   async getMemberByEmail(email: string) {
+    const cacheKey = `member:${cacheKeys.userByEmail(email)}`;
+    
     try {
-      await this.authenticate();
-      
-      const members = await this.client.request(
-        readItems('community_members', {
-          filter: { email: { _eq: email } },
-          limit: 1,
-        })
+      return await withCache(
+        directusCache,
+        cacheKey,
+        async () => {
+          return await optimizedQuery('getMemberByEmail', async () => {
+            await this.authenticate();
+            
+            const members = await this.client.request(
+              readItems('community_members', {
+                filter: { email: { _eq: email } },
+                limit: 1,
+              })
+            );
+            
+            if (members.length === 0) {
+              return { success: false, error: 'Member not found' };
+            }
+            
+            return { success: true, data: members[0] };
+          });
+        },
+        10 * 60 * 1000 // 10 minute cache
       );
-      
-      if (members.length === 0) {
-        return { success: false, error: 'Member not found' };
-      }
-      
-      return { success: true, data: members[0] };
     } catch (error) {
-      console.error('Error getting member by email:', error);
+      logger.serviceError('directus', 'getMemberByEmail', 'Error getting member by email', 
+        error instanceof Error ? error : new Error(String(error)), {
+          email: email.split('@')[0] + '@***'
+        });
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
