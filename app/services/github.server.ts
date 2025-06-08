@@ -238,6 +238,71 @@ class GitHubService {
   }
 
   /**
+   * Get public repositories for any GitHub user (no authentication required)
+   */
+  async getPublicRepositories(username: string): Promise<any[]> {
+    const cacheKey = `github:public-repos:${username}`;
+    
+    // Try cache first
+    const cached = directusCache.get<any[]>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    try {
+      const response = await fetch(`${GITHUB_API_BASE}/users/${username}/repos?sort=updated&per_page=30`, {
+        headers: {
+          'Accept': 'application/vnd.github.v3+json',
+          'User-Agent': 'Vibe-Community-App/1.0',
+        },
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          logger.warn('GitHub user not found', {
+            service: 'GitHubService',
+            method: 'getPublicRepositories',
+            username
+          });
+          return [];
+        }
+        throw new Error(`GitHub API request failed: ${response.status}`);
+      }
+
+      const repos = await response.json();
+      
+      // Filter out forks and archived repos, and only include repos with descriptions
+      const activeRepos = repos.filter((repo: any) => 
+        !repo.fork && 
+        !repo.archived && 
+        repo.description &&
+        repo.description.trim().length > 0
+      );
+      
+      // Cache for 1 hour
+      directusCache.set(cacheKey, activeRepos, 60 * 60 * 1000);
+      
+      logger.info('Fetched public repositories', {
+        service: 'GitHubService',
+        method: 'getPublicRepositories',
+        username,
+        totalRepos: repos.length,
+        activeRepos: activeRepos.length
+      });
+      
+      return activeRepos;
+    } catch (error) {
+      logger.error('Failed to fetch public repositories', {
+        service: 'GitHubService',
+        method: 'getPublicRepositories',
+        username,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      return [];
+    }
+  }
+
+  /**
    * Get repository languages
    */
   async getRepositoryLanguages(accessToken: string, owner: string, repo: string): Promise<GitHubLanguages> {

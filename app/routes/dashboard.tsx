@@ -165,7 +165,22 @@ export default function Dashboard() {
                   Interested in: {data.member.project_interest}
                 </p>
               )}
-              <div className="text-sm text-gray-400">Coming soon: Project showcase</div>
+              <div className="space-y-3">
+                <Link
+                  to="/projects"
+                  className="block bg-gradient-to-r from-vaporwave-cyan to-vaporwave-pink text-white font-semibold py-2 px-4 rounded-lg hover:from-vaporwave-pink hover:to-vaporwave-cyan transition-all duration-300 text-center"
+                >
+                  Browse Projects
+                </Link>
+                {data.member?.github_username && (
+                  <Link
+                    to="/projects?filter=seeking-collaborators"
+                    className="block bg-green-600 hover:bg-green-500 text-white font-semibold py-2 px-4 rounded-lg transition-colors text-center text-sm"
+                  >
+                    Find Collaborators
+                  </Link>
+                )}
+              </div>
             </div>
 
             {/* Events Card */}

@@ -709,6 +709,69 @@ class DirectusService {
       return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }
+
+  /**
+   * Generic method to create an item in any Directus collection
+   */
+  async createItem(collection: string, data: any) {
+    try {
+      await this.authenticate();
+      const result = await this.client.request(createItem(collection as any, data));
+      
+      logger.info('Directus item created successfully', {
+        service: 'DirectusService',
+        method: 'createItem',
+        collection,
+        itemId: result?.id
+      });
+      
+      return { success: true, data: result };
+    } catch (error) {
+      logger.error('Failed to create Directus item', {
+        service: 'DirectusService',
+        method: 'createItem',
+        collection,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to create item' 
+      };
+    }
+  }
+
+  /**
+   * Generic method to update an item in any Directus collection
+   */
+  async updateItem(collection: string, id: string, data: any) {
+    try {
+      await this.authenticate();
+      const result = await this.client.request(updateItem(collection as any, id, data));
+      
+      logger.info('Directus item updated successfully', {
+        service: 'DirectusService',
+        method: 'updateItem',
+        collection,
+        itemId: id
+      });
+      
+      return { success: true, data: result };
+    } catch (error) {
+      logger.error('Failed to update Directus item', {
+        service: 'DirectusService',
+        method: 'updateItem',
+        collection,
+        itemId: id,
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+      
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Failed to update item' 
+      };
+    }
+  }
 }
 
 export const directusService = new DirectusService();

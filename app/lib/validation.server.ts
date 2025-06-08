@@ -174,4 +174,100 @@ export interface RateLimitResult {
   remaining: number;
   resetTime: number;
   error?: string;
+}
+
+// Individual field validation utility
+export interface ValidationOptions {
+  required?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  pattern?: RegExp;
+}
+
+export interface FieldValidationResult {
+  isValid: boolean;
+  value: string;
+  error?: string;
+}
+
+export function validateInput(
+  input: string | null | undefined,
+  type: 'string' | 'email' | 'url' = 'string',
+  options: ValidationOptions = {}
+): FieldValidationResult {
+  const value = (input || '').toString().trim();
+  
+  // Check if required
+  if (options.required && !value) {
+    return {
+      isValid: false,
+      value: '',
+      error: 'This field is required'
+    };
+  }
+  
+  // If not required and empty, return valid
+  if (!options.required && !value) {
+    return {
+      isValid: true,
+      value: ''
+    };
+  }
+  
+  // Check length constraints
+  if (options.minLength && value.length < options.minLength) {
+    return {
+      isValid: false,
+      value,
+      error: `Must be at least ${options.minLength} characters`
+    };
+  }
+  
+  if (options.maxLength && value.length > options.maxLength) {
+    return {
+      isValid: false,
+      value,
+      error: `Must be no more than ${options.maxLength} characters`
+    };
+  }
+  
+  // Type-specific validation
+  switch (type) {
+    case 'email':
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(value)) {
+        return {
+          isValid: false,
+          value,
+          error: 'Please enter a valid email address'
+        };
+      }
+      break;
+      
+    case 'url':
+      try {
+        new URL(value);
+      } catch {
+        return {
+          isValid: false,
+          value,
+          error: 'Please enter a valid URL'
+        };
+      }
+      break;
+  }
+  
+  // Pattern validation
+  if (options.pattern && !options.pattern.test(value)) {
+    return {
+      isValid: false,
+      value,
+      error: 'Invalid format'
+    };
+  }
+  
+  return {
+    isValid: true,
+    value: sanitizeString(value)
+  };
 } 

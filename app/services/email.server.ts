@@ -565,6 +565,113 @@ class EmailService {
     });
   }
   
+  async sendProjectProposalNotification(data: {
+    to: string;
+    proposalData: any;
+  }): Promise<{ success: boolean; messageId?: string; error?: string }> {
+    const subject = `New Project Proposal: ${data.proposalData.title}`;
+    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <style>
+            body { font-family: 'Inter', Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: linear-gradient(135deg, #00d4ff, #ff0080); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f8f9fa; padding: 30px; border-radius: 0 0 10px 10px; }
+            .detail-box { background: rgba(0, 212, 255, 0.1); border: 1px solid rgba(0, 212, 255, 0.3); border-radius: 8px; padding: 20px; margin: 20px 0; }
+            .button { background: linear-gradient(90deg, #00d4ff, #ff0080); color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 20px 0; font-weight: bold; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🚀 New Project Proposal</h1>
+              <p>Vibe Coding Hamburg Community</p>
+            </div>
+            <div class="content">
+              <h2>${data.proposalData.title}</h2>
+              
+              <div class="detail-box">
+                <h3>Project Details</h3>
+                <p><strong>Category:</strong> ${data.proposalData.category}</p>
+                <p><strong>Experience Level:</strong> ${data.proposalData.experience_level}</p>
+                <p><strong>Time Commitment:</strong> ${data.proposalData.time_commitment}</p>
+                <p><strong>Remote Work:</strong> ${data.proposalData.is_remote ? 'Yes' : 'No'}</p>
+                <p><strong>Seeking Collaborators:</strong> ${data.proposalData.looking_for_collaborators ? 'Yes' : 'No'}</p>
+              </div>
+              
+              <div>
+                <h3>Description</h3>
+                <p>${data.proposalData.description}</p>
+              </div>
+              
+              <div>
+                <h3>Skills Needed</h3>
+                <p>${data.proposalData.skills_needed}</p>
+              </div>
+              
+              <div>
+                <h3>Proposer Information</h3>
+                <p><strong>Name:</strong> ${data.proposalData.proposer_name}</p>
+                <p><strong>Email:</strong> ${data.proposalData.proposer_email}</p>
+                <p><strong>Contact:</strong> ${data.proposalData.contact_email}</p>
+              </div>
+              
+              ${data.proposalData.github_repo ? `
+                <div>
+                  <h3>GitHub Repository</h3>
+                  <p><a href="${data.proposalData.github_repo}" style="color: #ff0080;">${data.proposalData.github_repo}</a></p>
+                </div>
+              ` : ''}
+              
+              <div style="text-align: center;">
+                <a href="${process.env.BASE_URL}/admin" class="button">
+                  Review in Admin Panel
+                </a>
+              </div>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    const text = `
+New Project Proposal: ${data.proposalData.title}
+
+Project Details:
+- Category: ${data.proposalData.category}
+- Experience Level: ${data.proposalData.experience_level}
+- Time Commitment: ${data.proposalData.time_commitment}
+- Remote Work: ${data.proposalData.is_remote ? 'Yes' : 'No'}
+- Seeking Collaborators: ${data.proposalData.looking_for_collaborators ? 'Yes' : 'No'}
+
+Description:
+${data.proposalData.description}
+
+Skills Needed:
+${data.proposalData.skills_needed}
+
+Proposer Information:
+- Name: ${data.proposalData.proposer_name}
+- Email: ${data.proposalData.proposer_email}
+- Contact: ${data.proposalData.contact_email}
+
+${data.proposalData.github_repo ? `GitHub Repository: ${data.proposalData.github_repo}` : ''}
+
+Review in admin panel: ${process.env.BASE_URL}/admin
+    `;
+
+    return this.sendEmail({
+      to: data.to,
+      subject,
+      text,
+      html,
+    });
+  }
+
   async testConnection(): Promise<{ success: boolean; error?: string }> {
     if (!this.transporter) {
       return { success: false, error: 'Email service not configured' };
