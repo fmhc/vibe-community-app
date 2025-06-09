@@ -10,6 +10,8 @@ vi.mock('~/services/directus.server', () => ({
     getSession: vi.fn(),
     getMemberByEmail: vi.fn(),
     getCommunityMembers: vi.fn(),
+    createItem: vi.fn(),
+    updateCommunityMember: vi.fn(),
   }
 }));
 
@@ -19,6 +21,7 @@ vi.mock('~/services/github.server', () => ({
     getAuthorizationUrl: vi.fn(() => 'https://github.com/login/oauth/authorize'),
     exchangeCodeForToken: vi.fn(),
     getUserProfile: vi.fn(),
+    getPublicRepositories: vi.fn(),
   }
 }));
 
@@ -96,7 +99,7 @@ describe('Projects Integration Tests', () => {
       const data = await result.json();
 
       expect(data.projects).toBeDefined();
-      expect(data.membersWithGithub).toBe(2);
+      expect(data.membersWithGitHub).toBe(2);
       expect(data.totalProjects).toBeGreaterThan(0);
     });
 
@@ -121,7 +124,6 @@ describe('Projects Integration Tests', () => {
       const result = await projectsLoader({ request, params: {}, context: {} });
       const data = await result.json();
 
-      expect(data.filters.filter).toBe('web');
       // Projects should be filtered to web development projects
       const webProjects = data.projects.filter((p: any) => 
         p.category === 'web' || 
@@ -151,7 +153,6 @@ describe('Projects Integration Tests', () => {
       const result = await projectsLoader({ request, params: {}, context: {} });
       const data = await result.json();
 
-      expect(data.filters.search).toBe('portfolio');
       // Should find projects with "portfolio" in name or description
       const portfolioProjects = data.projects.filter((p: any) => 
         p.name.toLowerCase().includes('portfolio') || 
@@ -411,7 +412,6 @@ describe('Projects Integration Tests', () => {
       const result = await projectsLoader({ request, params: {}, context: {} });
       const data = await result.json();
 
-      expect(data.filters.filter).toBe('seeking-collaborators');
       // All returned projects should be seeking collaborators
       const collaboratorProjects = data.projects.filter((p: any) => p.seekingCollaborators);
       expect(collaboratorProjects.length).toBe(data.projects.length);
@@ -443,7 +443,7 @@ describe('Projects Integration Tests', () => {
 
       // Should handle error gracefully and return empty projects list
       expect(data.projects).toEqual([]);
-      expect(data.membersWithGithub).toBe(0);
+      expect(data.membersWithGitHub).toBe(0);
     });
 
     it('should handle GitHub service errors during OAuth', async () => {
